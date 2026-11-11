@@ -5,7 +5,5 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record OrdemProducaoConclusaoRequest(
-        @NotNull
-        @PositiveOrZero
-        Integer quantidadeProduzida) {
+        @NotNull @PositiveOrZero Integer quantidadeProduzida) {
 }

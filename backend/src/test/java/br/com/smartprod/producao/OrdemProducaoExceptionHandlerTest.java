@@ -7,13 +7,12 @@ import org.springframework.http.ProblemDetail;
 
 class OrdemProducaoExceptionHandlerTest {
 
-    private final OrdemProducaoExceptionHandler handler =
-            new OrdemProducaoExceptionHandler();
+    private final OrdemProducaoExceptionHandler handler = new OrdemProducaoExceptionHandler();
 
     @Test
     void deveRetornar409QuandoEstadoDaOrdemForInvalido() {
-        IllegalStateException exception =
-                new IllegalStateException("Somente ordens pendentes podem ser iniciadas.");
+        IllegalStateException exception = new IllegalStateException(
+                "Somente ordens pendentes podem ser iniciadas.");
 
         ProblemDetail resposta = handler.tratarEstadoInvalido(exception);
 

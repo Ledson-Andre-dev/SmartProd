@@ -74,7 +74,7 @@ class OrdemProducaoControllerTest {
                 .thenReturn(List.of(ordem));
 
         mockMvc.perform(get("/api/ordens-producao")
-                        .param("status", "EM_ANDAMENTO"))
+                .param("status", "EM_ANDAMENTO"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status")
                         .value("EM_ANDAMENTO"));
@@ -124,15 +124,16 @@ class OrdemProducaoControllerTest {
                 .thenReturn(ordem);
 
         mockMvc.perform(patch("/api/ordens-producao/10/concluir")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "quantidadeProduzida": 45
-                                }
-                                """))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                            "quantidadeProduzida": 45
+                        }
+                        """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONCLUIDA"))
-                .andExpect(jsonPath("$.quantidadeProduzida").doesNotExist());
+                .andExpect(jsonPath("$.quantidadeProduzida").value(45))
+                .andExpect(jsonPath("$.concluidaEm").exists());
 
         verify(service).concluir(10L, 45);
     }
@@ -142,8 +143,7 @@ class OrdemProducaoControllerTest {
                 "Funcionário Teste",
                 "funcionario@teste.com",
                 "hash-teste",
-                Perfil.FUNCIONARIO
-        );
+                Perfil.FUNCIONARIO);
 
         ReflectionTestUtils.setField(usuario, "id", 3L);
 
@@ -151,8 +151,7 @@ class OrdemProducaoControllerTest {
                 50,
                 Instant.parse("2026-11-10T12:00:00Z"),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ReflectionTestUtils.setField(ordem, "id", 10L);
 

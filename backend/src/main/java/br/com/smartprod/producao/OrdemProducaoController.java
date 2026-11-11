@@ -49,8 +49,7 @@ public class OrdemProducaoController {
             @PathVariable Long id) {
 
         OrdemProducaoResponse resposta = OrdemProducaoResponse.de(
-                service.buscarPorId(id)
-        );
+                service.buscarPorId(id));
 
         return ResponseEntity.ok(resposta);
     }
@@ -61,8 +60,7 @@ public class OrdemProducaoController {
             @PathVariable Long id) {
 
         OrdemProducaoResponse resposta = OrdemProducaoResponse.de(
-                service.iniciar(id)
-        );
+                service.iniciar(id));
 
         return ResponseEntity.ok(resposta);
     }
@@ -74,8 +72,7 @@ public class OrdemProducaoController {
             @Valid @RequestBody OrdemProducaoConclusaoRequest request) {
 
         OrdemProducaoResponse resposta = OrdemProducaoResponse.de(
-                service.concluir(id, request.quantidadeProduzida())
-        );
+                service.concluir(id, request.quantidadeProduzida()));
 
         return ResponseEntity.ok(resposta);
     }

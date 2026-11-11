@@ -16,10 +16,9 @@ class OrdemProducaoTest {
                 0,
                 java.time.Instant.now(),
                 null,
-                null
-        ))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("A quantidade de unidades deve ser maior que zero.");
+                null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A quantidade de unidades deve ser maior que zero.");
     }
 
     @Test
@@ -28,10 +27,9 @@ class OrdemProducaoTest {
                 -5,
                 java.time.Instant.now(),
                 null,
-                null
-        ))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("A quantidade de unidades deve ser maior que zero.");
+                null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A quantidade de unidades deve ser maior que zero.");
     }
 
     @Test
@@ -40,10 +38,9 @@ class OrdemProducaoTest {
                 10,
                 null,
                 null,
-                null
-        ))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("O horário de entrega é obrigatório.");
+                null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("O horário de entrega é obrigatório.");
     }
 
     @Test
@@ -52,10 +49,9 @@ class OrdemProducaoTest {
                 10,
                 java.time.Instant.now(),
                 null,
-                null
-        ))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("O responsável e o criador da ordem são obrigatórios.");
+                null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("O responsável e o criador da ordem são obrigatórios.");
     }
 
     @Test
@@ -66,8 +62,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
 
@@ -86,8 +81,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
 
@@ -104,8 +98,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
         ordem.concluir(45);
@@ -128,8 +121,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         assertThatThrownBy(() -> ordem.concluir(45))
                 .isInstanceOf(IllegalStateException.class)
@@ -144,8 +136,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
         ordem.concluir(45);
@@ -163,8 +154,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
 
@@ -181,8 +171,7 @@ class OrdemProducaoTest {
                 50,
                 java.time.Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
 
         ordem.iniciar();
 
@@ -191,12 +180,52 @@ class OrdemProducaoTest {
                 .hasMessage("A quantidade produzida não pode ser nula ou negativa.");
     }
 
+    @Test
+    void naoDeveIniciarOrdemConcluida() {
+        Usuario usuario = criarUsuario();
+
+        OrdemProducao ordem = new OrdemProducao(
+                50,
+                java.time.Instant.now(),
+                usuario,
+                usuario);
+
+        ordem.iniciar();
+        ordem.concluir(45);
+
+        assertThatThrownBy(() -> ordem.iniciar())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Somente ordens pendentes podem ser iniciadas.");
+
+        assertThat(ordem.getStatus())
+                .isEqualTo(StatusOrdemProducao.CONCLUIDA);
+    }
+
+    @Test
+    void deveManterDadosDaOrdemAposTentativaDeAlteracao() {
+        Usuario usuario = criarUsuario();
+
+        OrdemProducao ordem = new OrdemProducao(
+                50,
+                java.time.Instant.now(),
+                usuario,
+                usuario);
+
+        ordem.iniciar();
+        ordem.concluir(45);
+
+        assertThatThrownBy(() -> ordem.concluir(30))
+                .isInstanceOf(IllegalStateException.class);
+
+        assertThat(ordem.getQuantidadeProduzida()).isEqualTo(45);
+        assertThat(ordem.getStatus()).isEqualTo(StatusOrdemProducao.CONCLUIDA);
+    }
+
     private Usuario criarUsuario() {
         return new Usuario(
                 "Funcionário Teste",
                 "funcionario@teste.com",
                 "hash-teste",
-                Perfil.FUNCIONARIO
-        );
+                Perfil.FUNCIONARIO);
     }
 }

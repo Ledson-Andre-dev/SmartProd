@@ -15,6 +15,5 @@ public interface OrdemProducaoRepository
     List<OrdemProducao> findAllByOrderByHorarioEntregaAsc();
 
     List<OrdemProducao> findByStatusOrderByHorarioEntregaAsc(
-    StatusOrdemProducao status
-);
+            StatusOrdemProducao status);
 }

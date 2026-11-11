@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.smartprod.usuario.Perfil;
 import br.com.smartprod.usuario.Usuario;
 import br.com.smartprod.usuario.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,11 +42,33 @@ public class OrdemProducaoService {
     }
 
     @Transactional(readOnly = true)
-    public Usuario buscarUsuarioAtivo(Long id) {
-        return usuarioRepository.findById(id)
+    public Usuario buscarResponsavelAtivo(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
                 .filter(Usuario::isAtivo)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Usuário não encontrado ou inativo."));
+                        "Usuário responsável não encontrado ou inativo."));
+
+        if (usuario.getPerfil() != Perfil.FUNCIONARIO) {
+            throw new IllegalArgumentException(
+                    "O responsável pela ordem deve ser um funcionário.");
+        }
+
+        return usuario;
+    }
+
+    @Transactional(readOnly = true)
+    public Usuario buscarGerenteAtivo(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .filter(Usuario::isAtivo)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Gerente criador não encontrado ou inativo."));
+
+        if (usuario.getPerfil() != Perfil.GERENTE) {
+            throw new IllegalArgumentException(
+                    "Somente um gerente pode criar uma ordem de produção.");
+        }
+
+        return usuario;
     }
 
     @Transactional

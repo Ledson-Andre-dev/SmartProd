@@ -54,8 +54,7 @@ class OrdemProducaoServiceTest {
                 StatusOrdemProducao.EM_ANDAMENTO))
                 .thenReturn(List.of(ordem));
 
-        List<OrdemProducao> ordens =
-                service.listarPorStatus(StatusOrdemProducao.EM_ANDAMENTO);
+        List<OrdemProducao> ordens = service.listarPorStatus(StatusOrdemProducao.EM_ANDAMENTO);
 
         assertThat(ordens)
                 .hasSize(1)
@@ -71,8 +70,7 @@ class OrdemProducaoServiceTest {
                 StatusOrdemProducao.CONCLUIDA))
                 .thenReturn(List.of());
 
-        List<OrdemProducao> ordens =
-                service.listarPorStatus(StatusOrdemProducao.CONCLUIDA);
+        List<OrdemProducao> ordens = service.listarPorStatus(StatusOrdemProducao.CONCLUIDA);
 
         assertThat(ordens).isEmpty();
 
@@ -92,7 +90,6 @@ class OrdemProducaoServiceTest {
 
         assertThat(resultado).isSameAs(ordem);
     }
-    
 
     @Test
     void naoDeveBuscarOrdemInexistente() {
@@ -104,18 +101,17 @@ class OrdemProducaoServiceTest {
                 .hasMessage("Ordem de produção não encontrada.");
     }
 
-    
     @Test
-    void naoDeveBuscarUsuarioInativo() {
+    void naoDeveBuscarResponsavelInativo() {
         Usuario usuario = criarUsuario();
         usuario.inativar();
 
         when(usuarioRepository.findById(1L))
                 .thenReturn(Optional.of(usuario));
 
-        assertThatThrownBy(() -> service.buscarUsuarioAtivo(1L))
+        assertThatThrownBy(() -> service.buscarResponsavelAtivo(1L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessage("Usuário não encontrado ou inativo.");
+                .hasMessage("Usuário responsável não encontrado ou inativo.");
     }
 
     @Test
@@ -155,13 +151,13 @@ class OrdemProducaoServiceTest {
     }
 
     @Test
-    void deveBuscarUsuarioAtivo() {
+    void deveBuscarResponsavelFuncionarioAtivo() {
         Usuario usuario = criarUsuario();
 
         when(usuarioRepository.findById(1L))
                 .thenReturn(Optional.of(usuario));
 
-        Usuario resultado = service.buscarUsuarioAtivo(1L);
+        Usuario resultado = service.buscarResponsavelAtivo(1L);
 
         assertThat(resultado).isSameAs(usuario);
 
@@ -169,13 +165,78 @@ class OrdemProducaoServiceTest {
     }
 
     @Test
-    void naoDeveBuscarUsuarioInexistenteOuInativo() {
+    void naoDeveBuscarResponsavelInexistente() {
         when(usuarioRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.buscarUsuarioAtivo(1L))
+        assertThatThrownBy(() -> service.buscarResponsavelAtivo(1L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessage("Usuário não encontrado ou inativo.");
+                .hasMessage("Usuário responsável não encontrado ou inativo.");
+    }
+
+    @Test
+    void naoDevePermitirGerenteComoResponsavel() {
+        Usuario gerente = new Usuario(
+                "Gerente Teste",
+                "gerente@teste.com",
+                "hash-teste",
+                Perfil.GERENTE);
+
+        when(usuarioRepository.findById(1L))
+                .thenReturn(Optional.of(gerente));
+
+        assertThatThrownBy(() -> service.buscarResponsavelAtivo(1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("O responsável pela ordem deve ser um funcionário.");
+    }
+
+    @Test
+    void deveBuscarGerenteAtivo() {
+        Usuario gerente = criarGerente();
+
+        when(usuarioRepository.findById(2L))
+                .thenReturn(Optional.of(gerente));
+
+        Usuario resultado = service.buscarGerenteAtivo(2L);
+
+        assertThat(resultado).isSameAs(gerente);
+
+        verify(usuarioRepository).findById(2L);
+    }
+
+    @Test
+    void naoDevePermitirFuncionarioComoCriador() {
+        Usuario funcionario = criarUsuario();
+
+        when(usuarioRepository.findById(1L))
+                .thenReturn(Optional.of(funcionario));
+
+        assertThatThrownBy(() -> service.buscarGerenteAtivo(1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Somente um gerente pode criar uma ordem de produção.");
+    }
+
+    @Test
+    void naoDeveBuscarGerenteInativo() {
+        Usuario gerente = criarGerente();
+        gerente.inativar();
+
+        when(usuarioRepository.findById(2L))
+                .thenReturn(Optional.of(gerente));
+
+        assertThatThrownBy(() -> service.buscarGerenteAtivo(2L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Gerente criador não encontrado ou inativo.");
+    }
+
+    @Test
+    void naoDeveBuscarGerenteInexistente() {
+        when(usuarioRepository.findById(2L))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.buscarGerenteAtivo(2L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Gerente criador não encontrado ou inativo.");
     }
 
     private OrdemProducao criarOrdem(Usuario usuario) {
@@ -183,8 +244,7 @@ class OrdemProducaoServiceTest {
                 50,
                 Instant.now(),
                 usuario,
-                usuario
-        );
+                usuario);
     }
 
     private Usuario criarUsuario() {
@@ -192,7 +252,14 @@ class OrdemProducaoServiceTest {
                 "Funcionário Teste",
                 "funcionario@teste.com",
                 "hash-teste",
-                Perfil.FUNCIONARIO
-        );
+                Perfil.FUNCIONARIO);
+    }
+
+    private Usuario criarGerente() {
+        return new Usuario(
+                "Gerente Teste",
+                "gerente@teste.com",
+                "hash-teste",
+                Perfil.GERENTE);
     }
 }

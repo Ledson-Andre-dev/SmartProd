@@ -7,20 +7,13 @@ import jakarta.validation.constraints.Positive;
 
 public record OrdemProducaoCriacaoRequest(
 
-        @NotNull
-        @Positive
-        Long fichaTecnicaId,
+        @NotNull @Positive Long fichaTecnicaId,
 
-        @NotNull
-        @Positive
-        Integer quantidadeUnidades,
+        @NotNull @Positive Integer quantidadeUnidades,
 
-        @NotNull
-        Instant horarioEntrega,
+        @NotNull Instant horarioEntrega,
 
-        @NotNull
-        @Positive
-        Long responsavelId
+        @NotNull @Positive Long responsavelId
 
 ) {
 }
