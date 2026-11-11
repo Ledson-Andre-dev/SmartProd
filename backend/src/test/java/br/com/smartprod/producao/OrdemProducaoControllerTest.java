@@ -2,6 +2,7 @@
 package br.com.smartprod.producao;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,7 @@ class OrdemProducaoControllerTest {
     void deveListarTodasAsOrdens() throws Exception {
         OrdemProducao ordem = criarOrdem();
 
-        when(service.listarTodas())
+        when(service.listarPorFiltros(null, null))
                 .thenReturn(List.of(ordem));
 
         mockMvc.perform(get("/api/ordens-producao"))
@@ -62,7 +63,7 @@ class OrdemProducaoControllerTest {
                 .andExpect(jsonPath("$[0].responsavel.nome")
                         .value("Funcionário Teste"));
 
-        verify(service).listarTodas();
+        verify(service).listarPorFiltros(null, null);
     }
 
     @Test
@@ -70,7 +71,8 @@ class OrdemProducaoControllerTest {
         OrdemProducao ordem = criarOrdem();
         ordem.iniciar();
 
-        when(service.listarPorStatus(StatusOrdemProducao.EM_ANDAMENTO))
+        when(service.listarPorFiltros(
+                StatusOrdemProducao.EM_ANDAMENTO, null))
                 .thenReturn(List.of(ordem));
 
         mockMvc.perform(get("/api/ordens-producao")
@@ -79,7 +81,39 @@ class OrdemProducaoControllerTest {
                 .andExpect(jsonPath("$[0].status")
                         .value("EM_ANDAMENTO"));
 
-        verify(service).listarPorStatus(StatusOrdemProducao.EM_ANDAMENTO);
+        verify(service).listarPorFiltros(
+                StatusOrdemProducao.EM_ANDAMENTO, null);
+    }
+
+    @Test
+    void deveListarOrdensPorData() throws Exception {
+        LocalDate data = LocalDate.of(2026, 11, 10);
+
+        when(service.listarPorFiltros(null, data))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/ordens-producao")
+                .param("data", "2026-11-10"))
+                .andExpect(status().isOk());
+
+        verify(service).listarPorFiltros(null, data);
+    }
+
+    @Test
+    void deveListarOrdensPorStatusEData() throws Exception {
+        LocalDate data = LocalDate.of(2026, 11, 10);
+
+        when(service.listarPorFiltros(
+                StatusOrdemProducao.PENDENTE, data))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/ordens-producao")
+                .param("status", "PENDENTE")
+                .param("data", "2026-11-10"))
+                .andExpect(status().isOk());
+
+        verify(service).listarPorFiltros(
+                StatusOrdemProducao.PENDENTE, data);
     }
 
     @Test

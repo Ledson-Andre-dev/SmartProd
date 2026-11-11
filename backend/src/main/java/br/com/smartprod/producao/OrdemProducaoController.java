@@ -1,8 +1,10 @@
 
 package br.com.smartprod.producao;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,11 +32,11 @@ public class OrdemProducaoController {
     @GetMapping
     @PreAuthorize("hasAnyRole('GERENTE', 'FUNCIONARIO')")
     public ResponseEntity<List<OrdemProducaoResponse>> listar(
-            @RequestParam(required = false) StatusOrdemProducao status) {
-
-        List<OrdemProducao> ordens = status == null
-                ? service.listarTodas()
-                : service.listarPorStatus(status);
+        @RequestParam(required = false) StatusOrdemProducao status,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate data) {
+        List<OrdemProducao> ordens = service.listarPorFiltros(status, data);
 
         List<OrdemProducaoResponse> resposta = ordens.stream()
                 .map(OrdemProducaoResponse::de)

@@ -2,6 +2,8 @@
 package br.com.smartprod.producao;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,6 +78,62 @@ class OrdemProducaoServiceTest {
 
         verify(repository).findByStatusOrderByHorarioEntregaAsc(
                 StatusOrdemProducao.CONCLUIDA);
+    }
+
+    @Test
+    void deveListarOrdensPorData() {
+        LocalDate data = LocalDate.of(2026, 11, 10);
+        Instant inicio = data.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant fim = data.plusDays(1)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant();
+
+        Usuario usuario = criarUsuario();
+        OrdemProducao ordem = criarOrdem(usuario);
+
+        when(repository
+                .findByHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                        inicio, fim))
+                .thenReturn(List.of(ordem));
+
+        List<OrdemProducao> ordens = service.listarPorFiltros(null, data);
+
+        assertThat(ordens)
+                .hasSize(1)
+                .containsExactly(ordem);
+
+        verify(repository)
+                .findByHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                        inicio, fim);
+    }
+
+    @Test
+    void deveListarOrdensPorStatusEData() {
+        LocalDate data = LocalDate.of(2026, 11, 10);
+        Instant inicio = data.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant fim = data.plusDays(1)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant();
+
+        Usuario usuario = criarUsuario();
+        OrdemProducao ordem = criarOrdem(usuario);
+        ordem.iniciar();
+
+        when(repository
+                .findByStatusAndHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                        StatusOrdemProducao.EM_ANDAMENTO, inicio, fim))
+                .thenReturn(List.of(ordem));
+
+        List<OrdemProducao> ordens = service.listarPorFiltros(
+                StatusOrdemProducao.EM_ANDAMENTO, data);
+
+        assertThat(ordens)
+                .hasSize(1)
+                .containsExactly(ordem);
+
+        verify(repository)
+                .findByStatusAndHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                        StatusOrdemProducao.EM_ANDAMENTO, inicio, fim);
     }
 
     @Test

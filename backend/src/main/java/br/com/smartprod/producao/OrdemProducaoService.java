@@ -1,6 +1,9 @@
 
 package br.com.smartprod.producao;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -32,6 +35,31 @@ public class OrdemProducaoService {
     @Transactional(readOnly = true)
     public List<OrdemProducao> listarPorStatus(StatusOrdemProducao status) {
         return repository.findByStatusOrderByHorarioEntregaAsc(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrdemProducao> listarPorFiltros(
+            StatusOrdemProducao status,
+            LocalDate data) {
+
+        if (data == null) {
+            return status == null
+                    ? listarTodas()
+                    : listarPorStatus(status);
+        }
+
+        Instant inicio = data.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant fim = data.plusDays(1)
+                .atStartOfDay(ZoneOffset.UTC)
+                .toInstant();
+
+        return status == null
+                ? repository
+                        .findByHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                                inicio, fim)
+                : repository
+                        .findByStatusAndHorarioEntregaGreaterThanEqualAndHorarioEntregaLessThanOrderByHorarioEntregaAsc(
+                                status, inicio, fim);
     }
 
     @Transactional(readOnly = true)
